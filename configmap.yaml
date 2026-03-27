@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app-config
+  name: mariadb-config
 data:
-  DB_HOST: mysql-service
-  DB_NAME: duniversity
-  DB_PORT: "3306"
-  NODE_ENV: production
+  GRIEVANCE_DB: grievance_db
+  LEAVE_DB: leave_db
+  TIMETABLE_DB: timetable_db
+  EXAMS_DB: exams_db
