@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: duniversity-app
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: duniversity-app
+  template:
+    metadata:
+      labels:
+        app: duniversity-app
+    spec:
+      containers:
+        - name: duniversity-app
+          image: maheshnandi/duniversity-portal:v1.0.0
+          ports:
+            - containerPort: 3000
+
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "200m"
+
+          envFrom:
+            - configMapRef:
+                name: app-config
+
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: MYSQL_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: MYSQL_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: duniversity-service
+spec:
+  selector:
+    app: duniversity-app
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: LoadBalancer

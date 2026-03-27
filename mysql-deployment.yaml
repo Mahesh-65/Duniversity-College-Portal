@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+
+  selector:
+    matchLabels:
+      app: mysql
+
+  template:
+    metadata:
+      labels:
+        app: mysql
+
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8
+
+          ports:
+            - containerPort: 3306
+
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "200m"
+
+          env:
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_NAME
+
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: MYSQL_USER
+
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: MYSQL_PASSWORD
+
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: MYSQL_ROOT_PASSWORD
+
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/dunisql
+
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  selector:
+    app: mysql
+  ports:
+    - port: 3306
+      targetPort: 3306
+  type: ClusterIP
