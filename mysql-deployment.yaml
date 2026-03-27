@@ -73,7 +73,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mariadb
+  name: mysql
 spec:
   selector:
     app: mysql
