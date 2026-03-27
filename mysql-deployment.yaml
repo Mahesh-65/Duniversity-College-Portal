@@ -68,7 +68,7 @@ spec:
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
-            claimName: mysql-pvc
+            claimName: duni-pvc
 ---
 apiVersion: v1
 kind: Service
