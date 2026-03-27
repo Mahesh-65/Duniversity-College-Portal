@@ -1,40 +1,95 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          envFrom:
+            - configMapRef:
+                name: mariadb-config
+            - secretRef:
+                name: mariadb-secret
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: duni-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+spec:
+  selector:
+    app: mysql
+  ports:
+    - port: 3306
+      targetPort: 3306
+  type: ClusterIP
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: duni-deployment
 spec:
   replicas: 2
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 1
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
-    matchLabels:
-      app: duni
+    matchLabels:
+      app: duni
   template:
-    metadata:
-      labels:
-        app: duni
-    spec:
-      containers:
-        - name: duni-container
-          image: muhammedsinanust/duniversity:latest
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 3000
-          envFrom:
-            - configMapRef:
-                name: mariadb-config
-            - secretRef:
-                name: mariadb-secret
-          resources:
-            requests:
-              cpu: "200m"
-              memory: "256Mi"
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
+    metadata:
+      labels:
+        app: duni
+    spec:
+      containers:
+        - name: duni-container
+          image: muhammedsinanust/duniversity:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: mariadb-config
+            - secretRef:
+                name: mariadb-secret
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -42,8 +97,8 @@ metadata:
   name: duni-service
 spec:
   selector:
-    app: duni
+    app: duni
   ports:
-    - port: 80
-      targetPort: 3000
+    - port: 80
+      targetPort: 3000
   type: ClusterIP
