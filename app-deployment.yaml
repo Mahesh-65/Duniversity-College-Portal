@@ -39,13 +39,13 @@ spec:
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: app-secret
+                  name: app-secrets
                   key: MYSQL_USER
 
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: app-secret
+                  name: app-secrets
                   key: MYSQL_PASSWORD
 ---
 apiVersion: v1
